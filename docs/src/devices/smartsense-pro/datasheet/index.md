@@ -1,0 +1,1 @@
+[Link text](/devices/smartsense-pro/datasheet/smartSense-pro-datasheet.pdf)
