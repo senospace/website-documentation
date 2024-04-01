@@ -8,6 +8,11 @@ export default defineConfig({
   themeConfig: {
     logo: '/assets/logo/logo_full.png',
     siteTitle: false,
+    footer: {
+      message: 'Released under the MIT License.',
+      copyright: 'Copyright © 2023 SenoSpace'
+    },
+    label: 'English',
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },

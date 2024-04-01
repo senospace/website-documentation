@@ -2,3 +2,27 @@
 	--vp-nav-logo-height: 48px;
 	--vp-c-brand-1: #5AACEF;
   }
+
+  .button-container {
+	display: flex;
+	column-gap: 20px;
+	justify-content: center;
+  }
+
+  .button-individual {
+	text-align: center;
+	line-height: 0;
+	font-weight: bold;
+	color: #7a7a7a;
+	padding: 5px;
+	width: 250px;
+  }
+  
+  .image-border {
+	border-radius: 15px;
+	border: 1px solid #7a7a7a;
+	padding: 20px;
+	box-shadow: 1px 1px 1px #7a7a7a;
+  }
+
+  
