@@ -107,7 +107,7 @@ function DoDecode(fPort, bytes) {
                     decoded.data.totalEvents = UInt16(bytes[5] << 8 | bytes[6]);
                     decoded.data.settings.deviceTypeId = bytes[7];
                     decoded.data.longEventTriggered = bytes[8];
-                    decoded.data.settings.alertInterval = UInt16(bytes[9] << 8 | bytes[10]);
+                    decoded.data.settings.alertInterval = UInt16(bytes[9] << 8 | bytes[10]) * 100;
 
                     switch (decoded.data.settings.deviceTypeId) {
                         // Generic Device Type, no usage calculations
@@ -126,7 +126,7 @@ function DoDecode(fPort, bytes) {
                     decoded.data.settings = {};
                     decoded.alertType = "Pulse Counting (Long Event Alert)";
                     decoded.data.currentState = bytes[1];
-                    decoded.data.settings.durationTrigger = UInt16(bytes[2] << 8 | bytes[3]) / 100;
+                    decoded.data.settings.durationTrigger = UInt16(bytes[2] << 8 | bytes[3]) * 100;
                 } break;
             }
         } break;
