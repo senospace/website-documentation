@@ -128,6 +128,22 @@ function DoDecode(fPort, bytes) {
                     decoded.data.currentState = bytes[1];
                     decoded.data.settings.durationTrigger = UInt16(bytes[2] << 8 | bytes[3]) * 100;
                 } break;
+                case 11: {
+                    decoded.data.settings = {};
+                    decoded.alertType = "Pulse Counting Event (Last Event Usage)";
+                    decoded.data.totalPulses = (bytes[1] << 24) + (bytes[2] << 16) + (bytes[3] << 8) + bytes[4];
+                    decoded.data.settings.deviceTypeId = bytes[5];
+                    decoded.data.temperature = Int16(bytes[6] << 8 | bytes[7]) / 100;
+                    decoded.data.humidity = UInt16(bytes[8] << 8 | bytes[9]) / 100;
+                    switch (decoded.data.settings.deviceTypeId) {
+                        // Generic Device Type, no usage calculations
+                        case 0x00:
+                        case 0x01: {
+                            decoded.data.totalLiters = decoded.data.totalPulses / 1077;
+                        } break;
+                    }
+
+                } break;
             }
         } break;
         case 0x03: { // System Packets
