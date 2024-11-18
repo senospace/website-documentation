@@ -144,6 +144,10 @@ function DoDecode(fPort, bytes) {
                     }
 
                 } break;
+                case 12: {
+                    decoded.alertType = "Headphone Jack Alert";
+                    decoded.data.currentValue = bytes[1];
+                } break;
             }
         } break;
         case 0x03: { // System Packets
@@ -664,6 +668,38 @@ function DoDecode(fPort, bytes) {
                     decoded.parameterType = "Pulse Counting Long Event";
                     decoded.data.enabled = bytes[1];
                     decoded.data.eventLongDelayValue = UInt16(bytes[2] << 8 | bytes[3]);
+                } break;
+                case 65: {
+                    decoded.parameterType = "Jack Detected Event ACK";
+                    decoded.data.ack = bytes[1];
+                    decoded.data.ackRetryCount = bytes[2];
+                } break;
+                case 66: {
+                    decoded.parameterType = "Jack Detected Event";
+                    decoded.data.enabled = bytes[1];
+                    decoded.data.delayCount = bytes[2];
+                } break;
+                case 67: {
+                    decoded.parameterType = "Jack Detected Buzzer";
+                    decoded.data.enabled = bytes[1];
+                    decoded.data.silenceEnabled = bytes[2];
+                    decoded.data.silenceCounter = UInt16(bytes[3] << 8 | bytes[4]);
+                    decoded.data.beepCount = bytes[5];
+                    decoded.data.beepDuration = UInt16(bytes[6] << 8 | bytes[7]);
+                } break;
+                case 68: {
+                    decoded.parameterType = "Jack Detected All";
+                    decoded.data.enabled = bytes[1];
+                    decoded.data.delayCount = bytes[2];
+                    decoded.data.buzzerEnabled = bytes[3];
+                    decoded.data.silenceEnabled = bytes[4];
+                    decoded.data.silenceCounter = UInt16(bytes[5] << 8 | bytes[6]);
+                    decoded.data.beepCount = bytes[7];
+                    decoded.data.beepDuration = UInt16(bytes[8] << 8 | bytes[9]);
+                } break;
+                case 69: {
+                    decoded.parameterType = "Buzzer Disabled";
+                    decoded.data.disabled = bytes[1];
                 } break;
             }
 
