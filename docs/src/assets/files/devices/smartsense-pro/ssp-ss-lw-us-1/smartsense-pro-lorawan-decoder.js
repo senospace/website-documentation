@@ -3,25 +3,57 @@ function DoDecode(fPort, bytes) {
     switch (fPort) {
         case 0x01: { // HeartBeat Packet
 
-            decoded.data.state = {};
-            decoded.data.enabledAlerts = {};
             decoded.payloadType = "Heartbeat";
             decoded.payloadTypeId = bytes[0];
-            decoded.data.batteryVoltage = (bytes[1] / 100) * 2;
-            decoded.data.batteryPercentage = bytes[2];
-            decoded.data.temperature = UInt16(bytes[3] << 8 | bytes[4]) / 100;
-            decoded.data.humidity = (bytes[5] << 8 | bytes[6]) / 100;
-            decoded.data.lastSnr = Int8(bytes[7]);
-            decoded.data.lastRssi = Int16(bytes[8] << 8 | bytes[9]);
-            decoded.data.stateAsUint8 = bytes[10];
-            decoded.data.enabledAlerts.pinLeakDetectionEnabled = ((bytes[10] & 0b00000001) > 0);
-            decoded.data.enabledAlerts.externalLeakDetectionEnabled = ((bytes[10] & 0b00000010) > 0);
-            decoded.data.enabledAlerts.tamperDetectionEnabled = ((bytes[10] & 0b00000100) > 0);
-            decoded.data.state.pinLeakDetected = ((bytes[10] & 0b00001000) > 0);
-            decoded.data.state.externalLeakDetected = ((bytes[10] & 0b00010000) > 0);
-            decoded.data.state.powerDetected = ((bytes[10] & 0b00100000) > 0);
-            decoded.data.state.jackDetected = ((bytes[10] & 0b01000000) > 0);
-            decoded.data.state.magnetDetected = ((bytes[10] & 0b10000000) > 0);
+
+            switch(decoded.payloadTypeId){
+                case 1: {
+                    decoded.data.state = {};
+                    decoded.data.enabledAlerts = {};
+                    decoded.data.batteryVoltage = (bytes[1] / 100) * 2;
+                    decoded.data.batteryPercentage = bytes[2];
+                    decoded.data.temperature = UInt16(bytes[3] << 8 | bytes[4]) / 100;
+                    decoded.data.humidity = (bytes[5] << 8 | bytes[6]) / 100;
+                    decoded.data.lastSnr = Int8(bytes[7]);
+                    decoded.data.lastRssi = Int16(bytes[8] << 8 | bytes[9]);
+                    decoded.data.stateAsUint8 = bytes[10];
+                    decoded.data.enabledAlerts.pinLeakDetectionEnabled = ((bytes[10] & 0b00000001) > 0);
+                    decoded.data.enabledAlerts.externalLeakDetectionEnabled = ((bytes[10] & 0b00000010) > 0);
+                    decoded.data.enabledAlerts.tamperDetectionEnabled = ((bytes[10] & 0b00000100) > 0);
+                    decoded.data.state.pinLeakDetected = ((bytes[10] & 0b00001000) > 0);
+                    decoded.data.state.externalLeakDetected = ((bytes[10] & 0b00010000) > 0);
+                    decoded.data.state.powerDetected = ((bytes[10] & 0b00100000) > 0);
+                    decoded.data.state.jackDetected = ((bytes[10] & 0b01000000) > 0);
+                    decoded.data.state.magnetDetected = ((bytes[10] & 0b10000000) > 0);
+                } break;
+                case 2: {
+                    decoded.data.batteryVoltage = (bytes[1] / 100) * 2;
+                    decoded.data.batteryPercentage = bytes[2];
+                    decoded.data.temperature = UInt16(bytes[3] << 8 | bytes[4]) / 100;
+                    decoded.data.humidity = (bytes[5] << 8 | bytes[6]) / 100;
+                    decoded.data.lastSnr = Int8(bytes[7]);
+                    decoded.data.lastRssi = Int16(bytes[8] << 8 | bytes[9]);
+                    decoded.data.deviceCount = bytes[10];
+                    decoded.data.deviceList = [];
+
+                    let y = 11;
+
+                    for(let i = 0; i < decoded.data.deviceCount; i++){
+                        let tempObj = {};
+                        let deviceId = "";
+
+                        for(let i=0; i < 6; i++){
+                            deviceId += bytes[y++].toString(16).padStart(2, '0').toUpperCase();
+                        }
+                        tempObj.deviceId = deviceId;
+                        let rssiValue = new Int8Array([bytes[y++]])[0];
+                        tempObj.rssi = rssiValue;
+                        
+                        decoded.data.deviceList.push(tempObj);
+                    }
+                } break;
+            }
+
         }
             break;
         case 0x02: { // Alert Packet
@@ -147,6 +179,40 @@ function DoDecode(fPort, bytes) {
                 case 12: {
                     decoded.alertType = "Headphone Jack Alert";
                     decoded.data.currentValue = bytes[1];
+                } break;
+                case 13: {
+                     
+                    decoded.alertType = "BLE Tracker Alert";
+                    decoded.data.deviceCount = bytes[1];
+                    decoded.data.deviceList = [];
+
+                    let y = 2;
+
+                    for(let i = 0; i < decoded.data.deviceCount; i++){
+                        let tempObj = {};
+                        let deviceId = "";
+
+                        for(let i=0; i < 6; i++){
+                            deviceId += bytes[y++].toString(16).padStart(2, '0').toUpperCase();
+                        }
+                        tempObj.deviceId = deviceId;
+                        let rssiValue = new Int8Array([bytes[y++]])[0];
+                        tempObj.rssi = rssiValue;
+                        
+                        decoded.data.deviceList.push(tempObj);
+                    }
+
+                } break;
+                case 14: {
+                    decoded.alertType = "Vibration Alert";
+                    decoded.data.isDetected = bytes[1];
+                } break;
+                case 15: {
+                    decoded.alertType = "Orientation Alert";
+                    decoded.data.xAxis = UInt16(bytes[1] << 8 | bytes[2]);
+                    decoded.data.yAxis = UInt16(bytes[3] << 8 | bytes[4]);
+                    decoded.data.zAxis = UInt16(bytes[5] << 8 | bytes[6]);
+                    decoded.data.isTilted = bytes[7];
                 } break;
             }
         } break;
@@ -701,6 +767,94 @@ function DoDecode(fPort, bytes) {
                     decoded.parameterType = "Buzzer Disabled";
                     decoded.data.disabled = bytes[1];
                 } break;
+                // BLE Tracker All Group Parameter
+                case 70: {
+                    decoded.parameterType = "BLE Tracker All";
+                    decoded.data.enabled = bytes[1];
+                    decoded.data.deviceCount = bytes[2];
+                } break;
+                // BLE Scanner All Group Parameter
+                case 71: {
+                    decoded.parameterType = "BLE Scanner All";
+                    decoded.data.duration = bytes[1];
+                    decoded.data.intervalTrigger = UInt16(bytes[2] << 8 | bytes[3]);
+                    decoded.data.silenceInterval = UInt16(bytes[4] << 8 | bytes[5]);
+                    decoded.data.role = bytes[6];
+                    decoded.data.rssiIgnoreThreshold = Int8(bytes[7]);
+                    decoded.data.uplinkRule = bytes[8];
+                    decoded.data.silenceRssiDiff = bytes[9];
+                } break;
+                // BLE Scanner Device 1 Filter Parameter
+                case 72: {
+                    let payloadTemp = "";
+                    let y = 2;
+
+                    decoded.parameterType = "BLE Scanner Device 1 Filter";
+                    decoded.data.payloadLength = bytes[1];
+
+                    for(let i=0; i < bytes[1]; i++){
+                        payloadTemp += bytes[y++].toString(16).padStart(2, '0').toUpperCase();
+                    }
+                    decoded.data.payload = payloadTemp;
+
+                } break;
+                // BLE Scanner Device 2 Filter Parameter
+                case 73: {
+                    let payloadTemp = "";
+                    let y = 2;
+
+                    decoded.parameterType = "BLE Scanner Device 2 Filter";
+                    decoded.data.payloadLength = bytes[1];
+
+                    for(let i=0; i < bytes[1]; i++){
+                        payloadTemp += bytes[y++].toString(16).padStart(2, '0').toUpperCase();
+                    }
+                    decoded.data.payload = payloadTemp;
+
+                } break;     
+                // BLE Scanner Device 3 Filter Parameter
+                case 74: {
+                    let payloadTemp = "";
+                    let y = 2;
+
+                    decoded.parameterType = "BLE Scanner Device 3 Filter";
+                    decoded.data.payloadLength = bytes[1];
+
+                    for(let i=0; i < bytes[1]; i++){
+                        payloadTemp += bytes[y++].toString(16).padStart(2, '0').toUpperCase();
+                    }
+                    decoded.data.payload = payloadTemp;
+
+                } break; 
+                // BLE Tracker ACK Parameter
+                case 75: {
+                    decoded.parameterType = "BLE Tracker ACK";
+                    decoded.data.ack = bytes[1];
+                    decoded.data.ackRetryCount = bytes[2];
+                } break; 
+                // Vibration ACK Parameter
+                case 76: {
+                    decoded.parameterType = "Vibration ACK";
+                    decoded.data.ack = bytes[1];
+                    decoded.data.ackRetryCount = bytes[2];
+                } break;  
+                // Orientation ACK Parameter  
+                case 77: {
+                    decoded.parameterType = "Orientation ACK";
+                    decoded.data.ack = bytes[1];
+                    decoded.data.ackRetryCount = bytes[2];
+                } break;
+                // Accelerometer All Group Parameter
+                case 78: {
+                    decoded.parameterType = "Accelerometer All";
+                    decoded.data.enabled = bytes[1];
+                    decoded.data.role = bytes[2];
+                    decoded.data.trigger1 = bytes[3];
+                    decoded.data.trigger2 = bytes[4];
+                    decoded.data.triggerCount = UInt16(bytes[5] << 8 | bytes[6]);
+                    decoded.data.triggerWindow = UInt16(bytes[7] << 8 | bytes[8]);
+                    decoded.data.delay = UInt16(bytes[9] << 8 | bytes[10]);
+                } break;                        
             }
 
 
