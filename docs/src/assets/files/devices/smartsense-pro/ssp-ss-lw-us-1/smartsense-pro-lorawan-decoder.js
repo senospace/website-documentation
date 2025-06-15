@@ -33,10 +33,11 @@ function DoDecode(fPort, bytes) {
                     decoded.data.humidity = (bytes[5] << 8 | bytes[6]) / 100;
                     decoded.data.lastSnr = Int8(bytes[7]);
                     decoded.data.lastRssi = Int16(bytes[8] << 8 | bytes[9]);
-                    decoded.data.deviceCount = bytes[10];
+                    decoded.data.inMotion = bytes[10];
+                    decoded.data.deviceCount = bytes[11];
                     decoded.data.deviceList = [];
 
-                    let y = 11;
+                    let y = 12;
 
                     for(let i = 0; i < decoded.data.deviceCount; i++){
                         let tempObj = {};
@@ -183,10 +184,11 @@ function DoDecode(fPort, bytes) {
                 case 13: {
                      
                     decoded.alertType = "BLE Tracker Alert";
-                    decoded.data.deviceCount = bytes[1];
+                    decoded.data.inMotion = bytes[1];
+                    decoded.data.deviceCount = bytes[2];
                     decoded.data.deviceList = [];
 
-                    let y = 2;
+                    let y = 3;
 
                     for(let i = 0; i < decoded.data.deviceCount; i++){
                         let tempObj = {};
